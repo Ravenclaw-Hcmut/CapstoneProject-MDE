@@ -222,6 +222,10 @@ class Trainer:
 
                 self.log("train", inputs, outputs, losses)
                 self.val()
+                
+                ## TODO
+                self.save_model()
+                ## ====================
 
             self.step += 1
 
