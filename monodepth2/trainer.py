@@ -31,6 +31,7 @@ class Trainer:
         self.opt = options
         self.log_path = os.path.join(self.opt.log_dir, self.opt.model_name)
 
+
         # checking height and width are multiples of 32
         assert self.opt.height % 32 == 0, "'height' must be a multiple of 32"
         assert self.opt.width % 32 == 0, "'width' must be a multiple of 32"
@@ -397,7 +398,10 @@ class Trainer:
     def compute_reprojection_loss(self, pred, target):
         """Computes reprojection loss between a batch of predicted and target images
         """
-        abs_diff = torch.abs(target - pred)
+        # abs_diff = torch.abs(target - pred)
+        vgg_features = VGGFeatures().cuda()
+        abs_diff = torch.abs(vgg_features(target) - vgg_features(pred))
+        
         l1_loss = abs_diff.mean(1, True)
 
         if self.opt.no_ssim:
