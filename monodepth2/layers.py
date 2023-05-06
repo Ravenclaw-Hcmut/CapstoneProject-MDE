@@ -12,6 +12,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+# TODO
+import torchvision
+from torchvision import datasets, io, models, ops, transforms, utils
+
 
 def disp_to_depth(disp, min_depth, max_depth):
     """Convert network's sigmoid output into depth prediction
@@ -267,3 +271,28 @@ def compute_depth_errors(gt, pred):
     sq_rel = torch.mean((gt - pred) ** 2 / gt)
 
     return abs_rel, sq_rel, rmse, rmse_log, a1, a2, a3
+
+##  TODO
+class VGGFeatures(nn.Module):
+    def __init__(self, normalize_input=True):
+        super(VGGFeatures, self).__init__()
+        self.model = torchvision.models.vgg16(True)
+        self.conv = list(self.model.features.children())[0]
+        self.conv.padding = 0
+        self.relu = nn.ReLU(True)
+
+        self.refl = nn.ReflectionPad2d(1)
+
+        self.normalize_input = normalize_input
+
+        for param in self.model.parameters():
+            param.requires_grad = False
+
+    def forward(self, x):
+        if self.normalize_input:
+            x = (x - 0.45) / 0.225
+        out = self.refl(x)
+        out = self.conv(out)
+        out = self.relu(out)
+        out = F.normalize(out)
+        return out
