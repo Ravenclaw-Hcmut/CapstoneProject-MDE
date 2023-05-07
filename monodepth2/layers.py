@@ -14,7 +14,7 @@ import torch.nn.functional as F
 
 # TODO
 import torchvision
-from torchvision import datasets, io, models, ops, transforms, utils
+from torchvision import datasets, models, transforms, utils
 
 
 def disp_to_depth(disp, min_depth, max_depth):
