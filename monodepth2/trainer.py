@@ -146,6 +146,9 @@ class Trainer:
         if not self.opt.no_ssim:
             self.ssim = SSIM()
             self.ssim.to(self.device)
+            
+        self.vgg_features = VGGFeatures()
+        self.vgg_features.to(self.device)
 
         self.backproject_depth = {}
         self.project_3d = {}
@@ -399,10 +402,14 @@ class Trainer:
         """Computes reprojection loss between a batch of predicted and target images
         """
         # abs_diff = torch.abs(target - pred)
-        vgg_features = VGGFeatures().cuda()
-        abs_diff = torch.abs(vgg_features(target) - vgg_features(pred))
         
-        l1_loss = abs_diff.mean(1, True)
+        # vgg_features = VGGFeatures().cuda()
+        # self.vgg_features = VGGFeatures()
+        # self.vgg_features.to(self.device)
+        
+        abs_diff = torch.abs(self.vgg_features(target) - self.vgg_features(pred))
+        
+        l1_loss = abs_diff.mean(1, True)        ##  shape (:, 1, H, W)
 
         if self.opt.no_ssim:
             reprojection_loss = l1_loss
@@ -433,12 +440,12 @@ class Trainer:
 
             for frame_id in self.opt.frame_ids[1:]:
                 pred = outputs[("color", frame_id, scale)]
-                reprojection_losses.append(self.compute_reprojection_loss(pred, target))
+                reprojection_losses.append(self.compute_reprojection_loss(pred, target))    ## target (x1 scale) vs output (-1 or +1, [] scales)
 
             reprojection_losses = torch.cat(reprojection_losses, 1)
 
             if not self.opt.disable_automasking:
-                identity_reprojection_losses = []
+                identity_reprojection_losses = []                       ##  target vs 2 unwrap source, all in x1 scale
                 for frame_id in self.opt.frame_ids[1:]:
                     pred = inputs[("color", frame_id, source_scale)]
                     identity_reprojection_losses.append(
@@ -476,7 +483,7 @@ class Trainer:
                 identity_reprojection_loss += torch.randn(
                     identity_reprojection_loss.shape, device=self.device) * 0.00001
 
-                combined = torch.cat((identity_reprojection_loss, reprojection_loss), dim=1)
+                combined = torch.cat((identity_reprojection_loss, reprojection_loss), dim=1)    ##  M:  4 channel
             else:
                 combined = reprojection_loss
 
