@@ -276,7 +276,7 @@ def compute_depth_errors(gt, pred):
 class VGGFeatures(nn.Module):
     def __init__(self, normalize_input=True):
         super(VGGFeatures, self).__init__()
-        self.model = torchvision.models.vgg16(True, pretrained=True)
+        self.model = torchvision.models.vgg16(pretrained=True)
         self.conv = list(self.model.features.children())[0]
         self.conv.padding = 0
         self.relu = nn.ReLU(True)
