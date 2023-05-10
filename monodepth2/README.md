@@ -87,6 +87,11 @@ You can download the entire [raw KITTI dataset](http://www.cvlibs.net/datasets/k
 ```shell
 wget -i splits/kitti_archives_to_download.txt -P kitti_data/
 ```
+Download only eigen_zhou dataset:
+```shell
+wget -i splits/kitti_download_eigenzhou.txt -P kitti_data/
+```
+
 Then unzip with
 ```shell
 cd kitti_data
