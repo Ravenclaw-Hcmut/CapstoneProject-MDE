@@ -25,23 +25,24 @@ from evaluate_depth import STEREO_SCALE_FACTOR
 
 
 def parse_args():
+    
+    choices=[
+        "mono_640x192",
+        "stereo_640x192",
+        "mono+stereo_640x192",
+        "mono_no_pt_640x192",
+        "stereo_no_pt_640x192",
+        "mono+stereo_no_pt_640x192",
+        "mono_1024x320",
+        "stereo_1024x320",
+        "mono+stereo_1024x320"] 
     parser = argparse.ArgumentParser(
         description='Simple testing funtion for Monodepthv2 models.')
 
     parser.add_argument('--image_path', type=str,
                         help='path to a test image or folder of images', required=True)
     parser.add_argument('--model_name', type=str,
-                        help='name of a pretrained model to use',
-                        choices=[
-                            "mono_640x192",
-                            "stereo_640x192",
-                            "mono+stereo_640x192",
-                            "mono_no_pt_640x192",
-                            "stereo_no_pt_640x192",
-                            "mono+stereo_no_pt_640x192",
-                            "mono_1024x320",
-                            "stereo_1024x320",
-                            "mono+stereo_1024x320"])
+                        help='name of a pretrained model to use')
     parser.add_argument('--ext', type=str,
                         help='image extension to search for in folder', default="jpg")
     parser.add_argument("--no_cuda",
@@ -60,6 +61,8 @@ def test_simple(args):
     """
     assert args.model_name is not None, \
         "You must specify the --model_name parameter; see README.md for an example"
+
+    model_name = args.model_name
 
     if torch.cuda.is_available() and not args.no_cuda:
         print ("cuda")
@@ -141,11 +144,13 @@ def test_simple(args):
             output_name = os.path.splitext(os.path.basename(image_path))[0]
             scaled_disp, depth = disp_to_depth(disp, 0.1, 100)
             if args.pred_metric_depth:
-                name_dest_npy = os.path.join(output_directory, "{}_depth.npy".format(output_name))
+                name_dest_npy = os.path.join(output_directory, "{}_{}_depth.npy".format(output_name, model_name))
+                name_dest_disp_npy = os.path.join(output_directory, "{}_{}_disp.npy".format(output_name, model_name))
                 metric_depth = STEREO_SCALE_FACTOR * depth.cpu().numpy()
                 np.save(name_dest_npy, metric_depth)
+                np.save(name_dest_disp_npy, scaled_disp.cpu().numpy())
             else:
-                name_dest_npy = os.path.join(output_directory, "{}_disp.npy".format(output_name))
+                name_dest_npy = os.path.join(output_directory, "{}_{}_disp.npy".format(output_name, model_name))
                 np.save(name_dest_npy, scaled_disp.cpu().numpy())
 
             # Saving colormapped depth image
@@ -156,7 +161,7 @@ def test_simple(args):
             colormapped_im = (mapper.to_rgba(disp_resized_np)[:, :, :3] * 255).astype(np.uint8)
             im = pil.fromarray(colormapped_im)
 
-            name_dest_im = os.path.join(output_directory, "{}_disp.jpeg".format(output_name))
+            name_dest_im = os.path.join(output_directory, "{}_{}_disp.jpeg".format(output_name, model_name))
             im.save(name_dest_im)
 
             print("   Processed {:d} of {:d} images - saved predictions to:".format(
