@@ -31,7 +31,7 @@ year = {2019}
 
 
 
-## ⚙️ Setup
+## ⚙️ Setup (Outdated)
 
 Assuming a fresh [Anaconda](https://www.anaconda.com/download/) distribution, you can install the dependencies with:
 ```shell
